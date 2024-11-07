@@ -1,0 +1,253 @@
+buildscript {
+    ext {
+        springBootVersion = '2.6.7'
+    }
+    repositories {
+        mavenCentral()
+        maven { url "https://plugins.gradle.org/m2/" } // plugin 저장소
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
+}
+
+plugins {
+    id 'org.springframework.boot' version '2.6.7'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'java'
+    id 'maven-publish'
+    id "jacoco"
+    id "org.sonarqube" version "3.5.0.2730"
+}
+
+
+apply plugin: 'io.spring.dependency-management'
+
+group = 'com.sktelecom.tmap.flerken'
+sourceCompatibility = '17'
+
+processResources.destinationDir = compileJava.destinationDir
+processTestResources.destinationDir = compileTestJava.destinationDir
+
+ext {
+    springfoxVersion = '2.9.2'
+    springCloudVersion = '3.1.8'
+    mapstructVersion = '1.4.2.Final'
+    querydslVersion = '5.0.0'
+    nddsContextStarterVersion = '1.4.8.10-SNAPSHOT'
+    nddsNtmonAgentStarterVersion = '1.4.8.17-SNAPSHOT'
+    nddsLoggerStarterVersion = '1.4.8.15-SNAPSHOT'
+    flywayVersion = '5.2.4'
+    lombokVersion = '1.18.20'
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+
+    integrationTestImplementation.extendsFrom testImplementation
+    integrationTestRuntime.extendsFrom testRuntime
+}
+
+configurations.all {
+    resolutionStrategy {
+
+        // 특정 모듈의 버전을 강제 지정(최상위건 이행적 의존성이건 무관함)
+        force 'com.google.guava:guava:20.0'
+
+        // 변하는 모듈(Changing Module)을 캐시하지 않음
+        cacheChangingModulesFor 0, 'seconds'
+    }
+
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        if (details.requested.group == 'org.apache.logging.log4j') {
+            details.useVersion '2.15.0'
+        }
+    }
+}
+
+repositories {
+    maven {
+        url = "https://nexus.tmapadmin.com/repository/maven-public"
+    }
+    mavenCentral()
+}
+
+sourceSets {
+    integrationTest {
+        java.srcDir "$projectDir/src/integrationTest/java"
+        resources.srcDir "$projectDir/src/integrationTest/resources"
+        compileClasspath += main.output + test.output
+        runtimeClasspath += main.output + test.output
+    }
+}
+
+dependencies {
+
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-amqp'
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation "org.flywaydb:flyway-core:${flywayVersion}"
+    implementation "io.springfox:springfox-swagger2:${springfoxVersion}"
+    implementation "io.springfox:springfox-swagger-ui:${springfoxVersion}"
+
+    implementation 'com.oracle:ojdbc7:12.1.0.2'
+    implementation 'org.apache.commons:commons-lang3:3.9'
+    implementation 'commons-beanutils:commons-beanutils:1.9.4'
+    implementation 'net.logstash.logback:logstash-logback-encoder:6.3'
+    implementation 'mysql:mysql-connector-java:8.0.22'
+    implementation 'org.mariadb.jdbc:mariadb-java-client:2.7.0'
+
+    implementation "org.springframework.cloud:spring-cloud-starter-sleuth:${springCloudVersion}"
+    implementation "org.springframework.cloud:spring-cloud-starter-openfeign:${springCloudVersion}"
+
+    implementation "com.skmnc.ndds.heimdall:ndds-context-spring-boot-starter:${nddsContextStarterVersion}"
+    implementation "com.skmnc.ndds.heimdall:ndds-context-spring-boot-autoconfigure:${nddsContextStarterVersion}"
+    implementation "com.skmnc.ndds.heimdall:ntmon-agent-spring-boot-starter:${nddsNtmonAgentStarterVersion}"
+    implementation "com.skmnc.ndds.heimdall:ntmon-agent-spring-boot-autoconfigure:${nddsNtmonAgentStarterVersion}"
+    implementation "com.skmnc.ndds.heimdall:ndds-logger-spring-boot-starter:${nddsLoggerStarterVersion}"
+    implementation "com.skmnc.ndds.heimdall:ndds-logger-spring-boot-autoconfigure:${nddsLoggerStarterVersion}"
+    implementation ('com.skmnc.ndds.frame:ndds-util:1.4.8') {
+        exclude group: '*'
+    }
+    implementation ('com.skmnc.ndds.frame:ndds-log:1.4.8') {
+        exclude group: '*'
+    }
+    implementation ('com.skmnc.ndds.frame:ndds-context:1.4.8') {
+        exclude group: '*'
+    }
+    implementation 'com.sktelecom.tmap.heimdall:logback-not-empty-value-masking-json-generator-decorator:6.4'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.10.5'
+    implementation 'javax.annotation:javax.annotation-api:1.3.2'
+    implementation 'com.google.code.findbugs:jsr305:3.0.2'
+
+    // AWS
+    implementation 'software.amazon.awssdk:rekognition:2.27.12'
+    implementation 'software.amazon.awssdk:sts:2.27.12'
+    implementation 'software.amazon.awssdk:sdk-core:2.27.12'
+    implementation 'software.amazon.awssdk:s3:2.27.12'
+
+    implementation "com.querydsl:querydsl-jpa:${querydslVersion}"
+
+    implementation "org.projectlombok:lombok-mapstruct-binding:0.2.0"
+    implementation "org.mapstruct:mapstruct:${mapstructVersion}"
+    implementation "org.projectlombok:lombok:${lombokVersion}"
+
+    // WebClient
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.projectreactor:reactor-spring:1.0.1.RELEASE'
+
+    implementation "io.jeo:proj4j:0.1.1"
+
+    annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok-mapstruct-binding:0.2.0"
+
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+    integrationTestCompileOnly 'org.projectlombok:lombok'
+    runtimeOnly 'org.springframework.boot:spring-boot-devtools'
+    runtimeOnly 'org.hsqldb:hsqldb'
+    runtimeOnly 'com.h2database:h2'
+
+    annotationProcessor "com.querydsl:querydsl-apt:${querydslVersion}:jpa"
+    annotationProcessor("jakarta.persistence:jakarta.persistence-api")
+    annotationProcessor("jakarta.annotation:jakarta.annotation-api")
+
+    annotationProcessor 'org.hibernate.javax.persistence:hibernate-jpa-2.1-api:1.0.2.Final'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    annotationProcessor 'javax.annotation:javax.annotation-api:1.3.2'
+
+
+    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+    testAnnotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+    testImplementation group: 'pl.pragmatists', name: 'JUnitParams', version: '1.1.1'
+    testImplementation group: 'org.unitils', name: 'unitils-core', version: '3.4.6'
+    testImplementation group: 'org.powermock', name: 'powermock-module-junit4', version: '2.0.0'
+    testImplementation group: 'org.powermock', name: 'powermock-api-mockito2', version: '2.0.0'
+    testImplementation group: 'org.hamcrest', name: 'hamcrest', version: '2.1'
+    testImplementation('org.springframework.boot:spring-boot-starter-test') {
+        exclude group: 'org.hamcrest'
+    }
+    testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
+    testImplementation 'org.apache.httpcomponents:httpclient:4.3.2'
+    testImplementation 'org.springframework.amqp:spring-rabbit-test'
+
+
+
+}
+
+// QueryDsl 설정 START
+def querydslSrcDir = 'src/main/generated'
+
+sourceSets {
+    main.java.srcDirs += [ querydslSrcDir ]
+}
+
+tasks.withType(JavaCompile) {
+    options.getGeneratedSourceOutputDirectory().set(file(querydslSrcDir))
+}
+
+clean.doLast {
+    file(querydslSrcDir).deleteDir()
+}
+// QueryDsl 설정 END
+
+task integrationTest(type: Test) {
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+}
+
+jacocoTestReport {
+    reports {
+        xml.required = true
+    }
+}
+
+sonar {
+    //noinspection GroovyAssignabilityCheck
+    properties {
+        property "sonar.projectKey", "tmobi_flerken"
+        property "sonar.organization", "tmobi"
+        property "sonar.host.url", "https://sonarcloud.io"
+        property "sonar.exclusions", "**/org/springframework/boot/**,**/dvo/*Dvo.java,**/main/generated/**,src/main/java/com/sktelecom/tmap/flerken/log/PoiMLSLog.java"
+        property "sonar.coverage.exclusions", "**/Q*Dvo.java, **/QChild.java, **/QParent.java, **/Q*Dvo_*.java, **/com/sktelecom/tmap/flerken/**/dto/*Dto.java"
+        property "sonar.cpd.exclusions", "**/com/sktelecom/tmap/flerken/util/mapper/*Mapper.java, **/com/sktelecom/tmap/flerken/**/dto/*Dto.java"
+    }
+}
+
+//noinspection GroovyAssignabilityCheck
+task sourcesJar(type: Jar) {
+    archiveClassifier = 'sources'
+    from sourceSets.main.allJava
+}
+
+//noinspection GroovyAssignabilityCheck
+task javadocJar(type: Jar) {
+    archiveClassifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+
+compileTestJava {
+    options.compilerArgs = [
+            '-Amapstruct.unmappedTargetPolicy=ERROR'
+    ]
+}
+compileJava {
+    options.compilerArgs = [
+            '-Amapstruct.unmappedTargetPolicy=ERROR'
+    ]
+}
+
+
+test {
+    finalizedBy jacocoTestReport
+    maxHeapSize = "1024m"
+}

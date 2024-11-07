@@ -1,0 +1,1063 @@
+app.name: "flerken"
+app.description: "T map Flerken (User Profile)"
+
+
+spring:
+  config:
+    use-legacy-processing: true
+  profiles:
+    active:
+      - hsqldb-file
+      - ndds-default
+    include:
+      - ndds
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
+management.endpoint.health.show-details: always
+
+spring.datasource.hikari.jdbc-url: ${spring.datasource.url}
+
+flerken:
+  initial-health-status: UP
+  db-support-call-metadata: false
+  phone-kind:
+    default: 99
+    AND: 45
+    IOS: 46
+  reg-route-cd:
+    default: 99
+    tmap: 50
+    okplace: 51
+    roadmaster: 52
+  favorite:
+    poi:
+      limit-count: 200
+      tag-max-length: 100
+      use-pkey: true
+    route:
+      limit-count: 100
+    public-traffic:
+      max-view-count: 200
+      max-min-reg: 100
+      max-min-reg-type1: 70
+      max-min-reg-type2: 30
+    used-route:
+      limit-count: 100
+    ev-charging-station:
+      limit-count: 100
+  recent:
+    poi:
+      query-max-count: 100
+      spare-max-count: 10
+      fixed-index-max-count: 3
+    public-transport:
+      upload-trim-enabled: false
+      upload-trim-size: 50
+  settings:
+    car-info-keys:
+      - car.model
+      - car.fuel
+      - car.hipassYn
+      - car.number
+      - car.insurer
+      - car.insurerRegDate
+    personal-info-keys:
+      - user.email
+      - user.name
+      - user.mdn
+      - user.birth
+      - user.image
+    oil-dc-keys:
+      - user.oilDcCardType
+  personal-info:
+    retrieve-limit-count: 200
+  partner:
+    svcstatus:
+      last-hours: 2
+  profile:
+    carinfo:
+      limit-count: 1000
+
+  exceptions:
+    unknown:
+      warning: true
+      ignore-logging: false
+    not-found:
+      warning: true
+      ignore-logging: true
+    bad-request-validation:
+      warning: true
+      ignore-logging: true
+    bad-request-database:
+      warning: true
+      ignore-logging: false
+    bad-request-fail-result:
+      warning: true
+      ignore-logging: true
+    bad-request-bind:
+      warning: true
+      ignore-logging: true
+    internal-server-error:
+      warning: false
+      ignore-logging: false
+    transaction:
+      warning: false
+      ignore-logging: false
+    data-access:
+      warning: false
+      ignore-logging: false
+
+logging:
+  level:
+    "org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver": ERROR
+  accesslog:
+    skip-return: true
+    skip-find: true
+
+
+ndds-context:
+  thread-context-interceptor-exclude-path-patterns:
+    - /actuator
+    - /api/v1/managed-health
+
+user-context-cache:
+  server:
+    url: tmap-ucc-if-dev-svc.ucc.svc/ucc-if/
+  read-api-cache:
+    enabled: false
+    ttl-day: 1
+    user-ratio: 0
+    logging-enabled: false
+
+darwin:
+  server:
+    url: darwin-dev.tmobiapi.com/api/v1
+
+santa:
+  server:
+    url: santa-dev.tmobiapi.com/api/v1
+    app-key: 1234
+
+spiceware:
+  server:
+    url: https://spiceware-flerken-dev.tmobiapi.com
+  policy:
+    personal-info:
+      uri: /api/v1/personal-info
+      fields:
+        - email
+        - userName
+        - mdn
+        - image
+    ext-car-info:
+      uri: /api/v1/ext-car-info
+      fields:
+        - jointOwnerName
+        - findOwnerName
+    insurers:
+      uri: /api/v1/insurers
+      fields:
+        - name
+        - mdn
+    drive-note:
+      uri: /api/v1/drive-note
+      fields:
+        - departName
+        - destName
+    car-info:
+      uri: /api/v3/car-info
+      fields:
+        - ownerName
+
+recall:
+  server:
+    url: https://car.go.kr/api
+    api-key: HDTTV93236bedgaBNBEX
+  requery-period-days: 1
+
+profile-image:
+  s3:
+    bucket-name: tmobi-cdn-dev
+    inappropriate-bucket-name: s3-inappropriate-image-dev
+    base-path: profile/
+    upload-path: profile/upload/
+  cdn:
+    host: https://cdn-dev.tmobiweb.com/
+  policy:
+    min-confidence: 80.0
+    reject-words:
+      - Explicit Sexual Activity
+      - Sex Toys
+      - Exposed Male Genitalia
+      - Exposed Female Genitalia
+      - Exposed Buttocks or Anus
+      - Exposed Female Nipple
+      - Implied Nudity
+      - Obstructed Female Nipple
+      - Obstructed Male Genitalia
+      - Weapon Violence
+      - Physical Violence
+      - Self-Harm
+      - Blood & Gore
+      - Corpses
+      - Middle Finger
+      - Gambling
+      - Nazi Party
+      - White Supremacy
+      - Extremist
+
+---
+spring.profiles: hsqldb
+
+spring:
+  flyway:
+    enabled: true
+    locations: classpath:db/migration, classpath:db/testdata
+  jpa:
+    hibernate.ddl-auto: none
+    database-platform: org.hibernate.dialect.HSQLDialect
+  datasource:
+    hikari:
+      driver-class-name: org.hsqldb.jdbc.JDBCDriver
+      username: SA
+      password: test
+
+mysql:
+  flyway:
+    enabled: true
+    locations: classpath:db/migration, classpath:db/testdata
+
+  jpa:
+    hibernate.ddl-auto: none
+    database-platform: org.hibernate.dialect.HSQLDialect
+  datasource:
+    hikari:
+      driver-class-name: org.hsqldb.jdbc.JDBCDriver
+      username: SA
+      password: test
+
+
+hibernate.dialect: org.hibernate.dialect.HSQLDialect
+
+
+---
+spring.profiles: hsqldb-file
+spring.profiles.include:
+  - hsqldb
+
+spring:
+  datasource:
+    hikari:
+      jdbc-url: jdbc:hsqldb:file:./hsqldb/flerken;sql.syntax_mys=true
+
+
+
+---
+spring.profiles: hsqldb-mem
+spring.profiles.include:
+  - hsqldb
+
+spring:
+  datasource:
+    hikari:
+      jdbc-url: jdbc:hsqldb:mem:flerken;sql.syntax_mys=true
+
+mysql:
+  datasource:
+    hikari:
+      jdbc-url: jdbc:hsqldb:mem:flerken;sql.syntax_mys=true
+  datasource-cm:
+    hikari:
+      jdbc-url: jdbc:hsqldb:mem:flerken;sql.syntax_mys=true
+
+---
+spring.profiles: oracle
+
+spring:
+  flyway:
+    enabled: false
+  jpa:
+    hibernate.ddl-auto: none
+    open-in-view: false
+
+  datasource:
+    hikari:
+      driver-class-name: oracle.jdbc.OracleDriver
+      connection-timeout: 15000
+      maximum-pool-size: 10
+      validation-timeout: 1000
+      initialization-fail-timeout: 1
+      data-source-properties:
+        "oracle.net.CONNECT_TIMEOUT": 3000
+        "oracle.jdbc.ReadTimeout": 3000
+
+hibernate.dialect: org.hibernate.dialect.Oracle10gDialect
+
+---
+spring.profiles: aurora
+
+spring:
+  flyway:
+    enabled: false
+  jpa:
+    hibernate.ddl-auto: none
+    open-in-view: false
+    properties:
+      hibernate:
+        auto_quote_keyword: true
+
+  datasource:
+    hikari:
+      driver-class-name: org.mariadb.jdbc.Driver
+      connection-timeout: 15000
+      maximum-pool-size: 10
+      validation-timeout: 1000
+      initialization-fail-timeout: 1
+
+hibernate.dialect: org.hibernate.dialect.MariaDB53Dialect
+
+---
+spring.profiles: mysql
+
+mysql:
+  flyway:
+    enabled: false
+  jpa:
+    hibernate.ddl-auto: none
+  datasource:
+    hikari:
+      driver-class-name: org.mariadb.jdbc.Driver
+      connection-timeout: 15000
+      maximum-pool-size: 10
+      validation-timeout: 1000
+      initialization-fail-timeout: 1
+
+
+hibernate.dialect: org.hibernate.dialect.MariaDB53Dialect
+
+---
+spring.profiles: server
+spring.profiles.include:
+  - aurora
+  - mysql
+#  - credentials
+  - tomcat
+  - ndds
+  - feign
+
+
+ntmon:
+  agent:
+    enabled: false
+
+---
+spring.profiles: jpa-execute-batch
+
+
+spring:
+  jpa:
+    properties:
+      "hibernate.jdbc.batch_size": 5
+      "hibernate.hibernate.order_inserts": true
+      "hibernate.jdbc.hibernate.order_updates": true
+      "hibernate.jdbc.batch_versioned_data": true
+
+---
+spring.profiles: tomcat
+
+server:
+  # tomcat config : write camel case key name!
+  tomcat:
+    maxThreads: 500
+    acceptCount: 500
+    uriEncoding: UTF-8
+    keepAliveTimeout: 2000
+  maxHttpHeaderSize: 25000
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+  compression:
+    enabled: true
+    mime-types: application/json
+    min-response-size: 1024
+
+---
+spring.profiles: prd
+spring.profiles.include:
+  - server
+  - jpa-execute-batch
+
+spring:
+  datasource:
+    hikari:
+      jdbc-url: "jdbc:mariadb:aurora://aurora-mysql-flerken-prd.cluster-caourrlxblp9.ap-northeast-2.rds.amazonaws.com:3306/poimaster?connectTimeout=3000&socketTimeout=3000&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul"
+      username: flerken_svc
+      password: # defined in container environment variables
+      auto-commit: false
+
+  properties:
+    hibernate:
+      connection:
+        provider_disables_autocommit: true
+
+  # for RabbitMQ
+  rabbitmq:
+    host: "b-122c7818-fefc-40ce-9e69-38d01c33bb43.mq.ap-northeast-2.amazonaws.com"
+    port: 5671
+    username: tmapmqadmin
+    password: # defined in container environment variables
+    ssl:
+      enabled: true
+      algorithm: TLSv1.2
+    # 아래의 내용은 consumer에서만 설정 필요
+    listener:
+      direct:
+        acknowledge-mode: manual
+      simple:
+        acknowledge-mode: manual
+
+  sleuth:
+    enabled: false
+
+
+mysql:
+  datasource:
+    hikari:
+      jdbc-url: "jdbc:mariadb:aurora://aurora-mysql-flerken-prd.cluster-caourrlxblp9.ap-northeast-2.rds.amazonaws.com:3306/flerken?connectTimeout=3000&socketTimeout=3000&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul"
+      username: flerken_svc
+      password: # defined in container environment variables
+      auto-commit: false
+
+flerken:
+  instance-code: '99'
+
+
+user-context-cache:
+  server:
+    url: tmap-ucc-if-prd-svc.ucc.svc/ucc-if/
+
+darwin:
+  server:
+    url: darwin.tmobiapi.com/api/v1
+
+
+santa:
+  server:
+    url: santa.tmobiapi.com/api/v1
+    app-key: CJ51KLQLKFTS
+
+spiceware:
+  server:
+    url: https://spiceware-flerken.tmobiapi.com
+
+profile-image:
+  s3:
+    bucket-name: tmobi-cdn-prd
+    inappropriate-bucket-name: s3-inappropriate-image-prd
+  cdn:
+    host: https://cdn.tmobiweb.com/
+
+aws:
+  service-account:
+    role-arn: arn:aws:iam::026843131687:role/iam-role-platform-prd-flerken-prd-sa
+
+send-cloned-request:
+  enabled: true
+  auto-start: false
+  server:
+    url: http://flerken-test.tmobiapi.com
+
+---
+spring.profiles: prd-legacy-l7-healthcheck
+
+management.endpoints.web:
+  base-path: /L7
+  path-mapping:
+    health: /healthcheck.html
+
+ndds-context:
+  thread-context-interceptor-exclude-path-patterns:
+    - /actuator
+    - /L7
+    - /api/v1/managed-health
+
+
+---
+spring.profiles: stg
+spring.profiles.include:
+  - server
+  - jpa-execute-batch
+
+spring:
+  datasource:
+    hikari:
+      jdbc-url: "jdbc:mariadb:aurora://aurora-mysql-flerken-stg.cluster-caourrlxblp9.ap-northeast-2.rds.amazonaws.com:3306/poimaster?connectTimeout=3000&socketTimeout=3000&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul"
+      username: flerken_svc
+      password: # defined in container environment variables
+      auto-commit: false
+
+  properties:
+    hibernate:
+      connection:
+        provider_disables_autocommit: true
+
+  # for RabbitMQ
+  rabbitmq:
+    host: "b-d098ced8-1f48-4882-a767-dbe879a66e85.mq.ap-northeast-2.amazonaws.com"
+    port: 5671
+    username: tmapmqadmin
+    password: # defined in container environment variables
+    ssl:
+      enabled: true
+      algorithm: TLSv1.2
+    # 아래의 내용은 consumer에서만 설정 필요
+    listener:
+      direct:
+        acknowledge-mode: manual
+      simple:
+        acknowledge-mode: manual
+
+  sleuth:
+    enabled: false
+
+mysql:
+  datasource:
+    hikari:
+      jdbc-url: "jdbc:mariadb:aurora://aurora-mysql-flerken-stg.cluster-caourrlxblp9.ap-northeast-2.rds.amazonaws.com:3306/flerken?connectTimeout=3000&socketTimeout=3000&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul"
+      username: flerken_svc
+      password: # defined in container environment variables
+      auto-commit: false
+
+flerken:
+  instance-code: '99'
+
+logging:
+  accesslog:
+    skip-return: false
+    skip-find: false
+
+user-context-cache:
+  server:
+    url: tmap-ucc-if-stg-svc.ucc.svc/ucc-if/
+
+darwin:
+  server:
+    url: darwin-stg.tmobiapi.com/api/v1
+
+santa:
+  server:
+    url: santa-stg.tmobiapi.com/api/v1
+    app-key: CP3AAPVGK3K3
+
+spiceware:
+  server:
+    url: https://spiceware-flerken.tmobiapi.com
+
+profile-image:
+  s3:
+    bucket-name: tmobi-cdn-prd
+    inappropriate-bucket-name: s3-inappropriate-image-prd
+  cdn:
+    host: https://cdn.tmobiweb.com/
+
+aws:
+  service-account:
+    role-arn: arn:aws:iam::026843131687:role/iam-role-platform-stg-flerken-stg-sa
+
+send-cloned-request:
+  enabled: true
+  auto-start: false
+  server:
+    url: http://flerken-test.tmobiapi.com
+
+---
+spring.profiles: perf
+spring.profiles.include:
+  - server
+  - jpa-execute-batch
+
+spring:
+  datasource:
+    hikari:
+      jdbc-url: "jdbc:mariadb://restore-mysql-flerken-prd01-0805-cluster.cluster-caourrlxblp9.ap-northeast-2.rds.amazonaws.com:3306/poimaster?connectTimeout=3000&socketTimeout=3000&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul"
+      username: flerken_svc
+      password: # defined in container environment variables
+      auto-commit: false
+
+  properties:
+    hibernate:
+      connection:
+        provider_disables_autocommit: true
+
+  # for RabbitMQ
+  rabbitmq:
+    host: "b-d098ced8-1f48-4882-a767-dbe879a66e85.mq.ap-northeast-2.amazonaws.com"
+    port: 5671
+    username: tmapmqadmin
+    password: # defined in container environment variables
+    ssl:
+      enabled: true
+      algorithm: TLSv1.2
+    # 아래의 내용은 consumer에서만 설정 필요
+    listener:
+      direct:
+        acknowledge-mode: manual
+      simple:
+        acknowledge-mode: manual
+
+  sleuth:
+    enabled: false
+
+
+mysql:
+  datasource:
+    hikari:
+      jdbc-url: "jdbc:mariadb://restore-mysql-flerken-prd01-0805-cluster.cluster-caourrlxblp9.ap-northeast-2.rds.amazonaws.com:3306/flerken?connectTimeout=3000&socketTimeout=3000&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul"
+      username: flerken_svc
+      password: # defined in container environment variables
+      auto-commit: false
+
+flerken:
+  instance-code: '99'
+
+
+user-context-cache:
+  server:
+    url: tmap-ucc-if-stg-svc.ucc.svc/ucc-if/
+
+darwin:
+  server:
+    url: darwin-stg.tmobiapi.com/api/v1
+
+santa:
+  server:
+    url: santa-stg.tmobiapi.com/api/v1
+    app-key: CP3AAPVGK3K3
+
+spiceware:
+  server:
+    url: https://spiceware-flerken.tmobiapi.com
+
+send-cloned-request:
+  enabled: false
+  auto-start: false
+
+---
+spring.profiles: dev
+spring.profiles.include:
+  - server
+
+spring:
+  datasource:
+    hikari:
+      jdbc-url: "jdbc:mariadb:aurora://aurora-mysql-flerken-dev.cluster-ceipd39g5dcp.ap-northeast-2.rds.amazonaws.com:3306/poimaster?connectTimeout=3000&socketTimeout=3000&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul"
+      username: flerken_svc
+      password: # defined in container environment variables
+      auto-commit: false
+
+  properties:
+    hibernate:
+      connection:
+        provider_disables_autocommit: true
+
+  # for RabbitMQ
+  rabbitmq:
+    host: "b-a25ef53c-e2ac-4273-b549-7725305aeec2.mq.ap-northeast-2.amazonaws.com"
+    port: 5671
+    username: tmapmqadmin
+    password: # defined in container environment variables
+
+    ssl:
+      enabled: true
+      algorithm: TLSv1.2
+    # 아래의 내용은 consumer에서만 설정 필요
+    listener:
+      direct:
+        acknowledge-mode: manual
+      simple:
+        acknowledge-mode: manual
+
+  sleuth:
+    enabled: false
+
+
+mysql:
+  datasource:
+    hikari:
+      jdbc-url: "jdbc:mariadb:aurora://aurora-mysql-flerken-dev.cluster-ceipd39g5dcp.ap-northeast-2.rds.amazonaws.com:3306/flerken?connectTimeout=3000&socketTimeout=3000&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul"
+      username: flerken_svc
+      password: # defined in container environment variables
+      auto-commit: false
+
+flerken:
+  instance-code: '99'
+
+
+logging:
+  level:
+    com.sktelecom.ndds.starter.ndds.logger.aspect: ERROR
+    com.sktelecom.ndds.starter.ntmon.agent.aspect: ERROR
+  accesslog:
+    skip-return: false
+    skip-find: false
+
+management:
+  endpoint:
+    env:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include:
+          - health
+          - info
+          - env
+          - metrics
+
+user-context-cache:
+  server:
+    url: tmap-ucc-if-dev-svc.ucc.svc/ucc-if/
+
+darwin:
+  server:
+    url: darwin-dev.tmobiapi.com/api/v1
+
+santa:
+  server:
+    url: santa-dev.tmobiapi.com/api/v1
+    app-key: 1234
+
+spiceware:
+  server:
+    url: https://spiceware-flerken-dev.tmobiapi.com
+
+profile-image:
+  s3:
+    bucket-name: tmobi-cdn-dev
+    inappropriate-bucket-name: s3-inappropriate-image-dev
+  cdn:
+    host: https://cdn-dev.tmobiweb.com/
+
+aws:
+  service-account:
+    role-arn: arn:aws:iam::422468282613:role/iam-role-platform-dev-flerken-dev-sa
+
+send-cloned-request:
+  enabled: false
+  auto-start: false
+
+---
+spring.profiles: local-dev
+spring.profiles.include:
+  - server
+
+spring:
+  datasource:
+    hikari:
+      jdbc-url: "jdbc:mariadb://aurora-mysql-flerken-dev.cluster-ceipd39g5dcp.ap-northeast-2.rds.amazonaws.com:3306/poimaster?connectTimeout=3000&socketTimeout=3000&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul"
+      username: dbgw_write
+      password: "DBGW_flerken2693"
+      auto-commit: false
+  jpa:
+    show-sql: true
+  properties:
+    hibernate:
+      show_sql: true
+      use_sql_comments: true
+      format_sql: true
+      type: trace
+      connection:
+        provider_disables_autocommit: true
+
+  # for RabbitMQ
+  rabbitmq:
+    host: "b-a25ef53c-e2ac-4273-b549-7725305aeec2.mq.ap-northeast-2.amazonaws.com"
+    port: 5671
+    username: tmapmqadmin
+    password: "#23Tmobi_tauthamq"
+    ssl:
+      enabled: true
+      algorithm: TLSv1.2
+    # 아래의 내용은 consumer에서만 설정 필요
+    listener:
+      direct:
+        acknowledge-mode: manual
+      simple:
+        acknowledge-mode: manual
+
+mysql:
+  datasource:
+    hikari:
+      jdbc-url: "jdbc:mariadb://aurora-mysql-flerken-dev.cluster-ceipd39g5dcp.ap-northeast-2.rds.amazonaws.com:3306/flerken?connectTimeout=3000&socketTimeout=3000&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul"
+      username: dbgw_write
+      password: "DBGW_flerken2693"
+      auto-commit: false
+
+flerken:
+  instance-code: '99'
+
+logging:
+  level:
+    com.sktelecom.ndds.starter.ndds.logger.aspect: ERROR
+    com.sktelecom.ndds.starter.ntmon.agent.aspect: ERROR
+    com.sktelecom.tmap.flerken: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: DEBUG
+  accesslog:
+    skip-return: false
+    skip-find: true
+
+
+management:
+  endpoint:
+    env:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include:
+          - health
+          - info
+          - env
+          - metrics
+
+user-context-cache:
+  server:
+    url: ucc-k8s-dev.tmobiapi.com/ucc-if/
+
+darwin:
+  server:
+    url: darwin-dev.tmobiapi.com/api/v1
+
+santa:
+  server:
+    url: santa-dev.tmobiapi.com/api/v1
+    app-key: 1234
+
+spiceware:
+  server:
+    url: https://spiceware-flerken-dev.tmobiapi.com
+
+send-cloned-request:
+  enabled: false
+  auto-start: false
+  server:
+    url: http://flerken-dev.tmobiapi.com
+
+
+---
+
+spring.profiles: local
+spring.profiles.include:
+  - hsqldb-file
+  - ndds
+  - ndds-default
+
+spring:
+  devtools:
+    add-properties: true
+  sleuth:
+    enabled: false
+  # for RabbitMQ
+  rabbitmq:
+    host: "b-a25ef53c-e2ac-4273-b549-7725305aeec2.mq.ap-northeast-2.amazonaws.com"
+    port: 5671
+    username: tmapmqadmin
+    password: "#23Tmobi_tauthamq"
+    # 아래는 Consumer 설정 내용 (Heimdall(Producer)에는 설정 불필요)
+    ssl:
+      enabled: true
+      algorithm: TLSv1.2
+    listener:
+      direct:
+        acknowledge-mode: manual
+      simple:
+        acknowledge-mode: manual
+
+
+flerken:
+  instance-code: '00'
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  accesslog:
+    skip-return: false
+    skip-find: false
+
+management:
+  endpoint:
+    env:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include:
+          - health
+          - info
+          - env
+          - metrics
+
+user-context-cache:
+  server:
+    url: ucc-k8s-dev.tmobiapi.com/ucc-if/
+
+darwin:
+  server:
+    url: darwin-dev.tmobiapi.com/api/v1
+
+santa:
+  server:
+    url: santa-dev.tmobiapi.com/api/v1
+    app-key: 1234
+
+spiceware:
+  server:
+    url: https://spiceware-flerken-dev.tmobiapi.com
+
+send-cloned-request:
+  enabled: false
+  auto-start: false
+
+---
+spring.profiles: test
+spring.profiles.include:
+  - hsqldb-mem
+  - ndds
+  - ndds-default
+
+spring:
+  jpa:
+    show-sql: true
+  properties:
+    hibernate:
+      show_sql: true
+      use_sql_comments: true
+      format_sql: true
+      type: trace
+  sleuth:
+    enabled: false
+  output:
+    ansi:
+      enabled: ALWAYS
+  # for RabbitMQ
+  rabbitmq:
+    host: "b-a25ef53c-e2ac-4273-b549-7725305aeec2.mq.ap-northeast-2.amazonaws.com"
+    port: 5671
+    username: tmapmqadmin
+    password: "#23Tmobi_tauthamq"
+    # 아래는 Consumer 설정 내용 (Heimdall(Producer)에는 설정 불필요)
+    ssl:
+      enabled: true
+    listener:
+      direct:
+        acknowledge-mode: manual
+      simple:
+        acknowledge-mode: manual
+
+logging:
+  level:
+    com.sktelecom.tmap.flerken: DEBUG
+    org.hibernate.SQL: INFO
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+user-context-cache:
+  server:
+    url: ucc-k8s-dev.tmobiapi.com/ucc-if/
+  read-api-cache:
+    enabled: true
+    ttl-day: 1
+    user-ratio: 1
+    logging-enabled: true
+
+darwin:
+  server:
+    url: darwin-dev.tmobiapi.com/api/v1
+
+santa:
+  server:
+    url: santa-dev.tmobiapi.com/api/v1
+    app-key: 1234
+
+spiceware:
+  server:
+    url: https://spiceware-flerken-dev.tmobiapi.com
+
+aws:
+  service-account:
+    role-arn: arn:aws:iam::422468282613:role/iam-role-platform-dev-flerken-dev-sa
+
+send-cloned-request:
+  enabled: false
+  auto-start: false
+
+server:
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+
+---
+spring.profiles: ndds-default
+flerken:
+  instance-code: '00'
+
+
+---
+spring.profiles: ndds
+flerken:
+  biz-code: "flerken"
+
+ndds-context:
+  biz-code: ${flerken.biz-code}
+  instance-code: ${flerken.instance-code}
+
+ndds-logger:
+  enabled: true
+  enabled-controller-aspect: false
+  domain-logger-biz-code: flerken
+  mls-logger-biz-code: user-profile
+  instance-code: ${flerken.instance-code}
+
+ntmon:
+  agent:
+    enabled: false
+
+
+---
+spring.profiles: disable-logging-access
+# dummy
+
+---
+spring.profiles: feign
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 3000
+        readTimeout: 3000
+      spiceware:
+        connectTimeout: 1000
+        readTimeout: 1500
+      recall:
+        connectTimeout: 1000
+        readTimeout: 1000
+      user-context-cache:
+        connectTimeout: 1000
+        readTimeout: 1000
+
+---
+spring.profiles: datasource-proxy
+
+decorator.datasource.datasource-proxy.logging: slf4j
+decorator.datasource.datasource-proxy.query.enable-logging: true
+decorator.datasource.datasource-proxy.query.log-level: DEBUG
+
+logging:
+  level:
+    net.ttddyy.dsproxy.listener.logging.SLF4JQueryLoggingListener: DEBUG
